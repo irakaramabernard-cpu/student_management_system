@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SMS</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SMS</h2>
+            <p id="userInfo" class="user-info"></p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="#" class="menu-item" data-section="dashboard">
+                <span class="icon">📊</span> Dashboard
+            </a>
+            <a href="#" class="menu-item" data-section="students">
+                <span class="icon">👨‍🎓</span> Students
+            </a>
+            <a href="#" class="menu-item" data-section="teachers" id="teachersMenu">
+                <span class="icon">👨‍🏫</span> Teachers
+            </a>
+            <a href="#" class="menu-item" data-section="attendance">
+                <span class="icon">📋</span> Attendance
+            </a>
+            <a href="#" class="menu-item" data-section="results">
+                <span class="icon">📈</span> Results
+            </a>
+            <a href="#" class="menu-item" data-section="fees">
+                <span class="icon">💰</span> Fees
+            </a>
+            <a href="#" class="menu-item" data-section="admin" id="adminMenu">
+                <span class="icon">⚙️</span> Admin
+            </a>
+            <div class="menu-divider"></div>
+            <button id="themeToggle" class="menu-item theme-toggle">
+                <span class="icon">🌙</span> Dark Mode
+            </button>
+            <a href="#" class="menu-item logout" onclick="logout()">
+                <span class="icon">🚪</span> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 id="pageTitle">Dashboard</h1>
+            <div class="top-bar-actions">
+                <button id="exportBtn" class="btn btn-export" onclick="exportDashboard()">📥 Export PDF</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <h3>Total Students</h3>
+                    <p id="totalStudents" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Teachers</h3>
+                    <p id="totalTeachers" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Attendance Rate</h3>
+                    <p id="attendanceRate" class="stat-number">0%</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Fees</h3>
+                    <p id="pendingFees" class="stat-number">0</p>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-box">
+                    <h3>Student Distribution by Class</h3>
+                    <canvas id="classChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Attendance Trend</h3>
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Students Section -->
+        <section id="students" class="content-section">
+            <div class="section-header">
+                <h2>Student Management</h2>
+                <button class="btn btn-primary" onclick="toggleStudentForm()">+ Add Student</button>
+            </div>
+
+            <form id="studentForm" class="form-hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student Name *</label>
+                        <input type="text" id="studentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Age *</label>
+                        <input type="number" id="studentAge" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Class *</label>
+                        <input type="text" id="studentClass" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Roll Number *</label>
+                        <input type="number" id="studentRoll" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="studentEmail">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="studentPhone">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Photo</label>
+                    <input type="file" id="studentPhoto" accept="image/*">
+                    <small>Upload student photo (jpg, png)</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Student</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleStudentForm()">Cancel</button>
+                </div>
+            </form>
+
+            <div class="search-bar">
+                <input type="text" id="studentSearch" placeholder="🔍 Search student by name or class...">
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Roll #</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTable"></tbody>
+            </table>
+        </section>
+
+        <!-- Teachers Section -->
+        <section id="teachers" class="content-section">
+            <div class="section-header">
+                <h2>Teacher Management</h2>
+                <button class="btn btn-primary" onclick="toggleTeacherForm()">+ Add Teacher</button>
+            </div>
+
+            <form id="teacherForm" class="form-hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Teacher Name *</label>
+                        <input type="text" id="teacherName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject *</label>
+                        <input type="text" id="teacherSubject" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="teacherEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone *</label>
+                        <input type="tel" id="teacherPhone" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Class Assigned</label>
+                        <input type="text" id="teacherClass">
+                    </div>
+                    <div class="form-group">
+                        <label>Experience (Years)</label>
+                        <input type="number" id="teacherExperience">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Teacher</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleTeacherForm()">Cancel</button>
+                </div>
+            </form>
+
+            <div class="search-bar">
+                <input type="text" id="teacherSearch" placeholder="🔍 Search teacher by name or subject...">
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Subject</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Class</th>
+                        <th>Experience</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="teacherTable"></tbody>
+            </table>
+        </section>
+
+        <!-- Attendance Section -->
+        <section id="attendance" class="content-section">
+            <div class="section-header">
+                <h2>Attendance Management</h2>
+                <button class="btn btn-primary" onclick="toggleAttendanceForm()">+ Mark Attendance</button>
+            </div>
+
+            <form id="attendanceForm" class="form-hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="attendanceDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Class *</label>
+                        <input type="text" id="attendanceClass" required>
+                    </div>
+                </div>
+
+                <div id="studentCheckboxes" class="form-group"></div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Attendance</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleAttendanceForm()">Cancel</button>
+                </div>
+            </form>
+
+            <div class="search-bar">
+                <input type="text" id="attendanceSearch" placeholder="🔍 Search by student or date...">
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Class</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTable"></tbody>
+            </table>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results" class="content-section">
+            <div class="section-header">
+                <h2>Results Management</h2>
+                <button class="btn btn-primary" onclick="toggleResultForm()">+ Add Result</button>
+            </div>
+
+            <form id="resultForm" class="form-hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student *</label>
+                        <input type="text" id="resultStudent" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject *</label>
+                        <input type="text" id="resultSubject" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Marks Obtained *</label>
+                        <input type="number" id="resultMarks" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Marks *</label>
+                        <input type="number" id="resultTotal" min="0" value="100" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Exam Type *</label>
+                        <select id="resultExamType" required>
+                            <option value="">Select Exam</option>
+                            <option value="Mid Term">Mid Term</option>
+                            <option value="Final">Final</option>
+                            <option value="Quiz">Quiz</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="resultDate" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Result</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleResultForm()">Cancel</button>
+                </div>
+            </form>
+
+            <div class="search-bar">
+                <input type="text" id="resultSearch" placeholder="🔍 Search results...">
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Marks</th>
+                        <th>Percentage</th>
+                        <th>Exam Type</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTable"></tbody>
+            </table>
+        </section>
+
+        <!-- Fees Section -->
+        <section id="fees" class="content-section">
+            <div class="section-header">
+                <h2>Fees Management</h2>
+                <button class="btn btn-primary" onclick="toggleFeeForm()">+ Add Fee Record</button>
+            </div>
+
+            <form id="feeForm" class="form-hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student *</label>
+                        <input type="text" id="feeStudent" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fee Type *</label>
+                        <select id="feeType" required>
+                            <option value="">Select Type</option>
+                            <option value="Tuition">Tuition</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Exam">Exam</option>
+                            <option value="Library">Library</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Amount *</label>
+                        <input type="number" id="feeAmount" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date *</label>
+                        <input type="date" id="feeDueDate" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <select id="feeStatus" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Overdue">Overdue</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Fee Record</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleFeeForm()">Cancel</button>
+                </div>
+            </form>
+
+            <div class="search-bar">
+                <input type="text" id="feeSearch" placeholder="🔍 Search fee records...">
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Fee Type</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="feeTable"></tbody>
+            </table>
+        </section>
+
+        <!-- Admin Section -->
+        <section id="admin" class="content-section">
+            <div class="section-header">
+                <h2>Admin Panel</h2>
+            </div>
+
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <h3>User Roles</h3>
+                    <p>Manage admin, teacher, and student roles</p>
+                    <button class="btn btn-primary" onclick="toggleRoleForm()">Manage Roles</button>
+                </div>
+                <div class="admin-card">
+                    <h3>System Settings</h3>
+                    <p>Configure system parameters and settings</p>
+                    <button class="btn btn-primary" onclick="alert('Settings page coming soon')">Settings</button>
+                </div>
+                <div class="admin-card">
+                    <h3>Backup & Export</h3>
+                    <p>Export all data or create system backup</p>
+                    <button class="btn btn-primary" onclick="backupData()">Backup Now</button>
+                </div>
+                <div class="admin-card">
+                    <h3>Activity Log</h3>
+                    <p>View system activity and user actions</p>
+                    <button class="btn btn-primary" onclick="viewActivityLog()">View Log</button>
+                </div>
+            </div>
+
+            <form id="roleForm" class="form-hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input type="text" id="roleName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role *</label>
+                        <select id="roleSelect" required>
+                            <option value="">Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password *</label>
+                        <input type="password" id="rolePassword" required placeholder="Enter secure password">
+                        <small>Passwords are encrypted and never displayed</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Assign Role</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleRoleForm()">Cancel</button>
+                </div>
+            </form>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="roleTable"></tbody>
+            </table>
+        </section>
+    </main>
+</div>
+
+<footer class="footer footer-dashboard">
+    <div class="footer-content">
+        <p>&copy; 2026 School Management System | Developed by <strong>Irakarama Bernard</strong></p>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
